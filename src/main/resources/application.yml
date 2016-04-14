@@ -1,0 +1,27 @@
+security:
+  oauth2:
+    client:
+      clientId: 974863897862-q6gprj5gjmbnq3j2rtnvbjinl1f4nmfs.apps.googleusercontent.com
+      clientSecret: ugxMNx4uwQq5eYowlLEgYAY
+      accessTokenUri: https://accounts.google.com/o/oauth2/token
+      userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
+      tokenName: oauth_token
+#      tokenInfoUri: https://accounts.google.com/o/oauth2/token
+      authenticationScheme: query
+      clientAuthenticationScheme: form
+      scope: profile email
+#      auto-approve-scopes: '.*'
+    resource:
+      userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+#      
+#      {"web":{"client_id":"974863897862-q6gprj5gjmbnq3j2rtnvbjinl1f4nmfs.apps.googleusercontent.com",
+#      "project_id":"phone-challenge",
+#      "auth_uri":"https://accounts.google.com/o/oauth2/auth",
+#      "token_uri":"https://accounts.google.com/o/oauth2/token",
+#      "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
+#      "client_secret":"1ugxMNx4uwQq5eYowlLEgYAY",
+#      "javascript_origins":["http://localhost:8080","http://challenge.leonslab.com"]}}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- 
+     <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+    -->
+
+    <title>A site dedicated to answering the phone challenge!</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
+
+	<!-- Google SSO Library -->
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
+	<meta name="google-signin-client_id" content="974863897862-q6gprj5gjmbnq3j2rtnvbjinl1f4nmfs.apps.googleusercontent.com">
+
+    <!-- Custom styles for this template -->
+    <link href="/css/theme.css" rel="stylesheet">
+
+	<script>
+	function onSignIn(googleUser) {
+		  var profile = googleUser.getBasicProfile();
+		  console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+		  console.log('Name: ' + profile.getName());
+		  console.log('Image URL: ' + profile.getImageUrl());
+		  console.log('Email: ' + profile.getEmail());
+		  console.log("yup, we're in!");
+		  
+		  var id_token = googleUser.getAuthResponse().id_token;
+		  var xhr = new XMLHttpRequest();
+		  //xhr.open('POST', 'http://localhost:8080/user');
+		  xhr.open('POST', 'http://localhost:8080/authenticateSession')
+		  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		  xhr.onload = function() {
+		    console.log('Signed in as: ' + xhr.responseText);
+		  };
+		  xhr.send('idtoken=' + id_token);
+		  
+		  //show the search field - you're good to go!
+		  document.getElementById('numSearch').style.display='block';
+		}
+	
+	</script>
+
+  </head>
+
+  <body role="document">
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Phone Challenge!</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="about.html">About The Author</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container theme-showcase" role="main">
+
+      <!-- Main jumbotron for a primary marketing message or call to action -->
+      <div class="jumbotron">
+        <h1>Welcome!</h1>
+        <p>With this application you can find various alpha-numeric variations of Phone Numbers.</p>
+      </div>
+
+	  <div id="signin" class="">
+	  <h2>To use this site, you must first log in using your Google account</h2>
+	  <div class="g-signin2" data-onsuccess="onSignIn"></div>
+	  </div>
+	  
+	<a href="#" onclick="signOut();">Sign out</a>
+	<script>
+	  function signOut() {
+	    var auth2 = gapi.auth2.getAuthInstance();
+	    auth2.signOut().then(function () {
+	      console.log('User signed out.');
+	    });
+	    document.getElementById('numSearch').style.display='none';
+	  }
+	</script>
+
+
+    
+
+	<div id="numSearch">
+		<div id="error" class="alert alert-danger error" role="alert">
+        	<strong>ERROR:</strong><span id="errorMsg"></span>
+      	</div>
+		<label for="inputNumber">Phone Number:</label>
+		<input id="inputNumber" type="text"></input>
+		<button type="button" id="numSubmit" class="btn btn-lg btn-primary">Submit</button>
+		<div id="numResults">
+		</div>
+	
+	</div>
+
+</div> <!-- /container -->
+
+  <!-- HANDLEBARS TEMPLATE for Phone Numbers -->
+  
+  <!-- {"id":1,"total":1,"page":1,"perPage":10,"numberIter":["123-456-789"]} -->
+  <script id="phoneNumResults" type="text/x-handlebars-template">
+    <h3>Total number of combinations: {{total}}</h3>
+	{{#if (gt total 0)}}
+	<ol>
+      {{#each numberIter}}
+        <li class="number">{{this}}</li>
+      {{/each}}
+    </ol>
+	<p>Displaying page {{page}} of {{endPage}} {{#if (lt page endPage)}} <button type="button" id="nextPage" onclick="getNextResults()" class="btn btn-sm btn-primary">Next>></button>{{/if}}</p>
+	{{/if}}
+  </script>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https:/ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- <script>window.jQuery || document.write('<script src="/js/vendor/jquery.min.js"><\/script>')</script> -->
+    <script>window.jQuery || document.write('<script src="/js/jquery.min.js"><\/script>')</script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/handlebars-v4.0.5.js"></script> 
+    <script src="/js/handlebars-eval-shim.js"></script>  
+
+<script>
+var hbrSource   = $("#phoneNumResults").html();
+var hbrTemplate = Handlebars.compile(hbrSource);
+var pageNum = 1;
+
+renderResults = function(results) {
+	clearError();
+	var html = hbrTemplate(results);
+	document.getElementById("numResults").innerHTML = html;
+};
+
+getJson = function() {
+	var request = new XMLHttpRequest();
+	var num = document.getElementById('inputNumber').value;
+	request.open('GET', '/translatePhoneNum?inputNum=' + num + "&pageNum=" + pageNum, true);
+
+	request.onload = function() {
+	  if (this.status >= 200 && this.status < 400) {
+	    // Success!
+	    console.log("successfully connected");
+	    var data = JSON.parse(this.response);
+	    console.log(data);
+	    
+	    if(!data.error){
+	    	renderResults(data);
+	    }
+	    else
+	    {
+	    	processError(data.error);
+	    }
+//	    addNextPageClickEvent(); - not working!
+	    
+	  } else {
+	    // We reached the server but it returned an error
+	    console.log("got a status:" + this.status);
+	  }
+	};
+
+	request.onerror = function() {
+	  // There was a connection error of some sort
+	  console.log("bad error");
+	};
+
+	request.send();
+};
+
+document.getElementById('numSubmit').onclick = function () {
+	pageNum=1;  
+	getJson();
+
+};
+
+//SHOULD work... but isn't
+/* addNextPageClickEvent = function() {
+	if(document.getElementById('nextPage') != null) {
+		document.getElementById('nextPage').onClick= function(nextPage) {
+			console.log("On To Next Page!");
+			pageNum++;
+			getJson();
+		};
+	}
+}; */
+
+//bail out the old way... I hate using "onclick"!
+getNextResults = function(nextPage) {
+			console.log("On To Next Page!");
+			pageNum++;
+			getJson();
+};
+
+clearError = function() {
+	document.getElementById("errorMsg").innerHTML = '';
+	document.getElementById("error").style.display = 'none';
+}
+
+processError = function(error) {
+	document.getElementById("errorMsg").innerHTML = error;
+	document.getElementById("error").style.display = 'block';
+}
+
+</script>
+
+<!-- Come back to backbone later...
+    <script src="/js/underscore.js"></script>
+    <script src="/js/backbone.js"></script>
+    <script src="/js/app/phoneSearchModel.js"></script>
+    <script src="/js/app/phoneSearchView.js"></script>
+    <script src="/js/app/phoneSearchApp.js"></script>
+     -->
+    <!-- why is this here?
+    <script src="/js/docs.min.js"></script>
+    -->
+  </body>
+</html>
